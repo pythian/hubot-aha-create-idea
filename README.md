@@ -1,4 +1,4 @@
-# hubot-reboot
+# hubot-aha-create-idea
 Hubot command to create a new idea in Aha (see http://aha.oi)
 
 ## Installation
