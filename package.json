@@ -1,0 +1,29 @@
+{
+  "name": "hubot-aha-create-idea",
+  "version": "1.0.0",
+  "description": "Hubot command for creating ideas in Aha.io",
+  "license": "MIT",
+  "keywords": [
+    "hubot",
+    "aha"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dennisnewel/hubot-aha-create-idea.git"
+  },
+  "author": {
+    "name": "Dennis Newel",
+    "email": "dennis.newel@newelcorp.com"
+  },
+  "main": "index.coffee",
+  "bugs": {
+    "url": "https://github.com/dennisnewel/hubot-aha-create-idea/issues"
+  },
+  "homepage": "https://github.com/dennisnewel/hubot-aha-create-idea",
+  "maintainers": [
+    {
+      "name": "Dennis Newel",
+      "email": "dennis.newel@newelcorp.com"
+    }
+  ]
+}
