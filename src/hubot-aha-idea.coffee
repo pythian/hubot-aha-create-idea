@@ -12,7 +12,7 @@
 #   request-promise
 #
 # Commands:
-#   hubot create idea <name>: <description> - hubot will create a new idea in Aha with the name <name> and description of <description>
+#   hubot create idea <name>: <description> <tags> - hubot will create a new idea in Aha with the name <name> and description of <description> with tags <tags>
 #
 # Author:
 #   Dennis Newel <dennis.newel@newelcorp.com>
@@ -38,7 +38,7 @@ req_headers = {
 
 module.exports = (robot) =>
 
-    robot.respond /create idea (.*): (.*)/i, (msg) ->
+    robot.respond /create idea (.*): (.*) #(.*) #(.*) #(.*)/i, (msg) ->
         msg.reply "hmm...something's missing from what you're asking me. Try again" unless msg.match[1] && msg.match[2]
 
         options = {
@@ -50,6 +50,7 @@ module.exports = (robot) =>
                     "name": msg.match[1],
                     "description": msg.match[2],
                     "created_by": msg.message.user.profile.email
+                    "tags": [msg.match[3], msg.match[4], msg.match[5]]
                 }
             },    
             json: true 
