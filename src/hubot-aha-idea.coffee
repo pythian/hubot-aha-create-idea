@@ -49,7 +49,7 @@ module.exports = (robot) =>
                 "idea": {
                     "name": msg.match[1],
                     "description": msg.match[2],
-                    "created_by": msg.message.user.slack.profile.email
+                    "created_by": msg.message.user.profile.email
                 }
             },    
             json: true 
