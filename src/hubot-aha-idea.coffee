@@ -37,29 +37,31 @@ req_headers = {
 }
 
 module.exports = (robot) =>
+  robot.respond /create idea (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
+    msg.reply "hmm...something's missing from what you're asking me. Try again" unless msg.match[1] && msg.match[2]
+    tags = if msg.match[3]
+             msg.match[3].slice(5).trim().split(/\,\s+/)
+           else
+             []
+    options = {
+      method: 'POST',
+      uri: aha_api + "products/" + product + "/ideas",
+      headers: req_headers,
+      body: {
+        "idea": {
+           "name": msg.match[1],
+           "description": msg.match[2],
+           "created_by": msg.message.user.profile.email
+           "tags": tags
+         }
+      },
+      json: true
+    }
 
-    robot.respond /create idea (.*):([\w|\s]*)\s+?(#\w+){0,1} ?(#\w+){0,1}/i, (msg) ->
-        msg.reply "hmm...something's missing from what you're asking me. Try again" unless msg.match[1] && msg.match[2]
-
-        options = {
-            method: 'POST',
-            uri: aha_api + "products/" + product + "/ideas",
-            headers: req_headers,
-            body: {
-                "idea": {
-                    "name": msg.match[1],
-                    "description": msg.match[2],
-                    "created_by": msg.message.user.profile.email
-                    "tags": msg.match[3...4]
-                }
-            },    
-            json: true 
-        }
-
-        rp(options)
-            .then (parsedBody) -> 
-                msg.reply "The idea '#{msg.match[1]}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
-                return
-            .catch (err) ->
-                msg.reply "Something went wrong when creating the idea: #{err}"
-                return
+    rp(options)
+      .then (parsedBody) ->
+        msg.reply "The idea '#{msg.match[1]}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
+        return
+      .catch (err) ->
+        msg.reply "Something went wrong when creating the idea: #{err}"
+        return
