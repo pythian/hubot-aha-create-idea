@@ -12,7 +12,7 @@
 #   request-promise
 #
 # Commands:
-#   hubot create idea <name>: <description> <tags> - hubot will create a new idea in Aha with the name <name> and description of <description> with tags <tags>
+#   hubot create idea <name>: <description> tags: <tag1>, <tag2> - hubot will create a new idea in Aha with the name <name> and description of <description> tags: <tag_list>
 #
 # Author:
 #   Dennis Newel <dennis.newel@newelcorp.com>
