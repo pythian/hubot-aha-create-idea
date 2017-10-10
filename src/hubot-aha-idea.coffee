@@ -38,7 +38,7 @@ req_headers = {
 
 module.exports = (robot) =>
 
-    robot.respond /create idea (.*): (.*) #(.*) #(.*) #(.*)/i, (msg) ->
+    robot.respond /create idea (.*):([\w|\s]*)\s+?(#\w+){0,1} ?(#\w+){0,1}/i, (msg) ->
         msg.reply "hmm...something's missing from what you're asking me. Try again" unless msg.match[1] && msg.match[2]
 
         options = {
@@ -50,7 +50,7 @@ module.exports = (robot) =>
                     "name": msg.match[1],
                     "description": msg.match[2],
                     "created_by": msg.message.user.profile.email
-                    "tags": [msg.match[3], msg.match[4], msg.match[5]]
+                    "tags": msg.match[3...4]
                 }
             },    
             json: true 
