@@ -12,11 +12,12 @@
 #   request-promise
 #
 # Commands:
-#   hubot create idea <name>: <description> tags: <tag1>, <tag2> - hubot will create a new idea in Aha with the name <name> and description of <description> tags: <tag_list>
+#   hubot create idea <name>: <description> tags: <tag1>, <tag2> 
+#   hubot create observation <name>: <description> tags: <tag1>, <tag2>
 #
 # Author:
 #   Dennis Newel <dennis.newel@newelcorp.com>
-#
+#   Dennis Walker <denniswalker@me.com>
 # Notes:
 #   The user used for this integration cannot be linked to a single sign-on system; it must be a user with basic username/password
 #
@@ -30,38 +31,48 @@ product = process.env.HUBOT_AHA_PRODUCT ? "P"
 rp = require 'request-promise'
 
 req_headers = {
-    "X-Aha-Account": process.env.HUBOT_AHA_ACCOUNTNAME,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    Authorization: "Basic " + usertoken,    
+  "X-Aha-Account": process.env.HUBOT_AHA_ACCOUNTNAME,
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  Authorization: "Basic " + usertoken
 }
 
-module.exports = (robot) =>
-  robot.respond /create idea (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
-    msg.reply "hmm...something's missing from what you're asking me. Try again" unless msg.match[1] && msg.match[2]
-    tags = if msg.match[3]
-             msg.match[3].slice(5).trim().split(/\,\s+/)
-           else
-             []
-    options = {
-      method: 'POST',
-      uri: aha_api + "products/" + product + "/ideas",
-      headers: req_headers,
-      body: {
-        "idea": {
-           "name": msg.match[1],
-           "description": msg.match[2],
-           "created_by": msg.message.user.profile.email
-           "tags": tags
-         }
-      },
-      json: true
-    }
+createAhaIdea = (msg, name=undefined, description=undefined, tags=[], categories=[]) ->
+  msg.reply "hmm...something's missing from what you're asking me. Try again" unless name && description
+  options = {
+    method: 'POST',
+    uri: aha_api + "products/" + product + "/ideas",
+    headers: req_headers,
+    body: {
+      "idea": {
+        "name": name,
+        "description": description,
+        "created_by": msg.message.user.profile.email,
+        "categories": categories,
+        "tags": tags
+      }
+    },
+    json: true
+  }
 
-    rp(options)
-      .then (parsedBody) ->
-        msg.reply "The idea '#{msg.match[1]}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
-        return
-      .catch (err) ->
-        msg.reply "Something went wrong when creating the idea: #{err}"
-        return
+  rp(options)
+    .then (parsedBody) ->
+      msg.reply "The idea '#{msg.match[1]}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
+      return
+    .catch (err) ->
+      msg.reply "Something went wrong when creating the idea: #{err}"
+      return
+
+parseTags = (tags_string) ->
+  return tags_string.slice(5).trim().split(/\,\s+/)
+
+module.exports = (robot) ->
+  robot.respond /create idea (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
+    tags = if msg.match[3] then parseTags(msg.match[3]) else []
+    createAhaIdea(msg, msg.match[1], msg.match[2], tags)
+
+  robot.respond /create observation (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
+    tags = if msg.match[3] then parseTags(msg.match[3]) else []
+    createAhaIdea(msg, msg.match[1], msg.match[2], tags, ["observation"])
+    
+    
