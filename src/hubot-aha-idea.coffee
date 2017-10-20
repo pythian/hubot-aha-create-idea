@@ -23,6 +23,7 @@
 # Notes:
 #   The user used for this integration cannot be linked to a single sign-on system; it must be a user with basic username/password
 #
+yaml = require('js-yaml');
 
 aha_api = "https://" + process.env.HUBOT_AHA_ACCOUNTNAME + ".aha.io/api/v1/"
 default_release = process.env.HUBOT_AHA_RELEASE ? "P-R-1"
@@ -106,8 +107,9 @@ sortCategoriesIntoHierarchy = (categories) ->
   for item of hierarchy
     temp = { "#{hierarchy[item].name}": hierarchy[item].children }
     hierarchy_array.push(temp)
-
-  return "#{JSON.stringify(hierarchy_array, null, '  ')}"
+  
+  categories_in_yml = yaml.safeLoadAll(JSON.stringify(hierarchy_array, null, ""))
+  return yaml.safeDump(categories_in_yml)
 
 
 parseTags = (message) ->
