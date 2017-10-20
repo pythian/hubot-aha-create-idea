@@ -114,11 +114,19 @@ sortCategoriesIntoHierarchy = (categories) ->
 
 parseTags = (message) ->
   tags = message.match(/tags:([A-Z0-9.,()\s'\-]*(?![categories:]))/i)
-  return tags[1].trim().split(/\,\s+/)
+  result = if tags
+             tags[1].trim().split(/\,\s*/)
+           else
+             []
+  return result
 
 parseCategories = (message) ->
   categories = message.match(/categories:([A-Z0-9.,()\s'\-]*(?![tags:]))/i)
-  return categories[1].trim().split(/\,\s*/)
+  result = if categories
+             categories[1].trim().split(/\,\s*/)
+           else
+             []
+  return result
 
 parseName = (message) ->
   name = message.match(/(.*?):/i)
