@@ -69,7 +69,7 @@ createAhaIdea = (msg, categories=[]) ->
       return
     .catch (err) ->
       msg.reply "Something went wrong when creating the idea: #{err}"
-      getIdeaCategories(msg) if "#{err}".match(/unknown idea category: new category/i)
+      getIdeaCategories(msg) if "#{err}".match(/unknown idea category:/i)
       return
 
 getIdeaCategories = (msg) ->
