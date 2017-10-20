@@ -12,12 +12,14 @@
 #   request-promise
 #
 # Commands:
-#   hubot create idea <name>: <description> tags: <tag1>, <tag2> 
-#   hubot create observation <name>: <description> tags: <tag1>, <tag2>
+#   hubot create idea <name>: <description> (optional)tags: <tag1>, <tag2> (optional)categories: <category1>, <category2> 
+#   hubot create observation <name>: <description> (optional)tags: <tag1>, <tag2>
+#   hubot list idea categories
 #
 # Author:
 #   Dennis Newel <dennis.newel@newelcorp.com>
 #   Dennis Walker <denniswalker@me.com>
+#
 # Notes:
 #   The user used for this integration cannot be linked to a single sign-on system; it must be a user with basic username/password
 #
@@ -37,7 +39,12 @@ req_headers = {
   Authorization: "Basic " + usertoken
 }
 
-createAhaIdea = (msg, name=undefined, description=undefined, tags=[], categories=[]) ->
+createAhaIdea = (msg, categories=[]) ->
+  name = parseName(msg.match[1])
+  description = parseDescription(msg.match[1])
+  tags = parseTags(msg.match[1])
+  categories = parseCategories(msg.match[1]) unless categories[0]
+
   msg.reply "hmm...something's missing from what you're asking me. Try again" unless name && description
   options = {
     method: 'POST',
@@ -57,22 +64,55 @@ createAhaIdea = (msg, name=undefined, description=undefined, tags=[], categories
 
   rp(options)
     .then (parsedBody) ->
-      msg.reply "The idea '#{msg.match[1]}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
+      msg.reply "The idea '#{name}' has been created in Aha as #{parsedBody.idea.reference_num}: #{parsedBody.idea.url}"
+      return
+    .catch (err) ->
+      msg.reply "Something went wrong when creating the idea: #{err}"
+      getIdeaCategories(msg) if "#{err}".match(/unknown idea category: new category/i)
+      return
+
+getIdeaCategories = (msg) ->
+  options = {
+    method: 'GET',
+    uri: aha_api + "products/" + product + "/idea_categories",
+    headers: req_headers,
+    json: true
+  }
+
+  rp(options)
+    .then (parsedBody) ->
+      aha_categories = "The categories for product #{product} are:"
+      aha_categories = "#{aha_categories}\n#{category['name']}" for category in parsedBody.idea_categories
+      msg.reply aha_categories
       return
     .catch (err) ->
       msg.reply "Something went wrong when creating the idea: #{err}"
       return
 
-parseTags = (tags_string) ->
-  return tags_string.slice(5).trim().split(/\,\s+/)
+parseTags = (message) ->
+  tags = message.match(/tags:([A-Z0-9.,()\s'\-]*(?![categories:]))/i)
+  return tags[1].trim().split(/\,\s+/)
+
+parseCategories = (message) ->
+  categories = message.match(/categories:([A-Z0-9.,()\s'\-]*(?![tags:]))/i)
+  return categories[1].trim().split(/\,\s*/)
+
+parseName = (message) ->
+  name = message.match(/(.*?):/i)
+  return name[1].trim()
+
+parseDescription = (message) ->
+  description = message.match(/:([A-Z0-9.,()\s'\-]*(?![tags:|categories:]))/i)
+  return description[1].trim()
 
 module.exports = (robot) ->
-  robot.respond /create idea (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
-    tags = if msg.match[3] then parseTags(msg.match[3]) else []
-    createAhaIdea(msg, msg.match[1], msg.match[2], tags)
+  robot.respond /create idea (.*)/i, (msg) ->
+    createAhaIdea(msg)
 
-  robot.respond /create observation (.*): ((?!tags:)[\w|\s]*) (tags:[\w|\s|\,]*)?/i, (msg) ->
-    tags = if msg.match[3] then parseTags(msg.match[3]) else []
-    createAhaIdea(msg, msg.match[1], msg.match[2], tags, ["observation"])
+  robot.respond /create observation (.*)/i, (msg) ->
+    createAhaIdea(msg, ["observation"])
+
+  robot.respond /list idea categories/i, (msg) ->
+    getIdeaCategories(msg)
     
     
