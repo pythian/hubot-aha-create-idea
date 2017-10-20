@@ -81,13 +81,34 @@ getIdeaCategories = (msg) ->
 
   rp(options)
     .then (parsedBody) ->
+      hierarchy = sortCategoriesIntoHierarchy(parsedBody.idea_categories)
       aha_categories = "The categories for product #{product} are:"
-      aha_categories = "#{aha_categories}\n#{category['name']}" for category in parsedBody.idea_categories
+      aha_categories = "#{aha_categories}\n#{hierarchy}"
       msg.reply aha_categories
       return
     .catch (err) ->
       msg.reply "Something went wrong when creating the idea: #{err}"
       return
+
+sortCategoriesIntoHierarchy = (categories) ->
+  hierarchy = {}
+  hierarchy_array = []
+
+  # Populate top level hierarchy
+  for parent in categories when parent.parent_id is null
+    hierarchy[parent.id] = {"name": parent["name"], "children":[]}
+
+  # Push children into parent arrays
+  for category in categories when category.parent_id isnt null
+    hierarchy[category.parent_id]["children"].push(category.name)
+
+  # Strip parent IDs
+  for item of hierarchy
+    temp = { "#{hierarchy[item].name}": hierarchy[item].children }
+    hierarchy_array.push(temp)
+
+  return "#{JSON.stringify(hierarchy_array, null, '  ')}"
+
 
 parseTags = (message) ->
   tags = message.match(/tags:([A-Z0-9.,()\s'\-]*(?![categories:]))/i)
