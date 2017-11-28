@@ -42,9 +42,12 @@ req_headers = {
 
 createAhaIdea = (msg, categories=[]) ->
   name = parseName(msg.match[1])
-  description = parseDescription(msg.match[1])
   tags = parseTags(msg.match[1])
-  categories = parseCategories(msg.match[1]) unless categories[0]
+  if !categories[0]
+    categories = parseCategories(msg.match[1])
+    description = parseDescription(msg.match[1], tags, categories)
+  else
+    description = parseDescription(msg.match[1], tags)
 
   msg.reply "hmm...something's missing from what you're asking me. Try again" unless name && description
   options = {
@@ -132,9 +135,19 @@ parseName = (message) ->
   name = message.match(/(.*?):/i)
   return name[1].trim()
 
-parseDescription = (message) ->
-  description = message.match(/:([A-Z0-9.,()\s'\-]*(?![tags:|categories:]))/i)
-  return description[1].trim()
+parseDescription = (message, tags=null, categories=null) ->
+  description = message.match(/:(.*)/i)[1].trim()
+  description = removeSubString(description, "categories:", categories) if categories
+  description = removeSubString(description, "tags:", tags) if tags
+  return description
+
+removeSubString = (main_string, label, sub_string) ->
+  new_string = main_string
+  str_idx = main_string.indexOf(sub_string)
+  new_string = main_string.substr(0, str_idx) if str_idx && str_idx > 0
+  label_idx = new_string.indexOf(label)
+  new_string = new_string.substr(0, label_idx) if label_idx && label_idx > 0
+  return new_string
 
 module.exports = (robot) ->
   robot.respond /create idea (.*)/i, (msg) ->
